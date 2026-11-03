@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#161514">
+  <title>Tabletop · Player View</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/player.css">
+</head>
+<body class="play">
+  <!-- read-only map: pan, pinch/scroll to zoom, drag only your own token -->
+  <div class="stage" id="stage" data-kind="room">
+    <div class="pan-layer" id="pan">
+      <div class="map" id="map" aria-label="Battlemap"></div>
+    </div>
+  </div>
+
+  <header class="play-bar">
+    <div class="scene-name" id="scene-name">Waiting for the GM…</div>
+    <div class="conn bad" id="conn" role="status" aria-live="polite" title="Not connected to the GM's table">🔴 <span>Disconnected</span></div>
+  </header>
+
+  <div class="zoom-ctl" role="group" aria-label="Map zoom">
+    <button type="button" id="zoom-out" aria-label="Zoom out">−</button>
+    <span id="zoom-label" aria-live="polite">100%</span>
+    <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+    <button type="button" id="zoom-fit" aria-label="Fit the whole map" title="Fit to screen">⤢</button>
+    <button type="button" id="zoom-me" aria-label="Find my token" title="Go to my token">◎</button>
+  </div>
+
+  <aside class="dossier" id="card" aria-hidden="true" aria-label="Details"></aside>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="/static/player.js"></script>
+</body>
+</html>

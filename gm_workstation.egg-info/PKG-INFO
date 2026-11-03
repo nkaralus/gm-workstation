@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: gm-workstation
+Version: 0.1.0
+Summary: Local, high-velocity tabletop GM workstation: FastAPI + SQLite WAL + offline Qwen parser
+Requires-Python: >=3.10
+Requires-Dist: fastapi>=0.110
+Requires-Dist: uvicorn[standard]>=0.29
+Provides-Extra: llm
+Requires-Dist: llama-cpp-python>=0.2.90; extra == "llm"
+Requires-Dist: huggingface-hub>=0.23; extra == "llm"
+Provides-Extra: images
+Requires-Dist: google-genai>=0.8; extra == "images"

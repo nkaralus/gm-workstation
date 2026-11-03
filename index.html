@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GM Workstation</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <nav class="tabs" role="tablist" aria-label="Workstation views">
+      <div class="scene-tabs" id="scene-tabs" role="group" aria-label="Scenes"></div>
+      <span class="tabs-sep" aria-hidden="true"></span>
+      <button class="tab" role="tab" data-tab="roster" aria-selected="false">Patron Roster</button>
+      <button class="tab" role="tab" data-tab="rumors" aria-selected="false">Rumors &amp; Clues</button>
+    </nav>
+    <div class="topright">
+      <div class="status" id="status" aria-live="polite"></div>
+      <div class="broadcast" id="broadcast">
+        <button type="button" id="broadcast-btn" aria-haspopup="true" aria-controls="broadcast-pop">📡 Broadcast / Player Link</button>
+        <div class="broadcast-pop" id="broadcast-pop" hidden></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="crumbbar">
+    <nav class="crumbs" id="crumbs" aria-label="Location hierarchy"></nav>
+    <div class="scene-tools" id="scene-tools"></div>
+  </div>
+
+  <main class="workbench">
+    <section class="view active" id="view-map" role="tabpanel">
+      <!-- expansive viewport: wheel zooms (0.3x - 1.8x), drag pans -->
+      <div class="stage" id="stage" data-kind="room">
+        <div class="pan-layer" id="pan">
+          <div class="map" id="map" aria-label="Battlemap"></div>
+        </div>
+        <div class="zoom-ctl" id="zoom-ctl" role="group" aria-label="Map zoom">
+          <button type="button" id="zoom-out" aria-label="Zoom out">−</button>
+          <span id="zoom-label" aria-live="polite">100%</span>
+          <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+          <button type="button" id="zoom-fit" aria-label="Fit map to window" title="Fit to window">⤢</button>
+          <button type="button" id="zoom-expand" aria-haspopup="true" aria-expanded="false" title="Grow this map">📐 Expand Map</button>
+          <button type="button" id="zoom-import" title="Import a battle map image for this scene">🗺 Import</button>
+          <button type="button" id="zoom-new" title="Create a new blank map">✦ New Map</button>
+          <div class="expand-menu" id="expand-menu" role="menu" hidden></div>
+        </div>
+        <div class="hint">Scroll to zoom · drag to pan · click a landmark to inspect it</div>
+      </div>
+    </section>
+
+    <section class="view" id="view-roster" role="tabpanel">
+      <div class="ledger" id="roster"></div>
+    </section>
+
+    <section class="view" id="view-rumors" role="tabpanel">
+      <div class="ledger" id="rumors"></div>
+    </section>
+
+    <aside class="dossier" id="dossier" aria-hidden="true" aria-label="Inspection card"></aside>
+  </main>
+
+  <footer class="promptbar">
+    <form id="prompt-form" autocomplete="off">
+      <div class="prompt-wrap">
+        <input id="prompt" type="text" maxlength="400"
+               placeholder="Try  /town Valesom near Highmark     (? lists every command)"
+               title="Type a /command or plain words. New entries go to the scene you are viewing."
+               aria-label="GM directive" aria-autocomplete="list" aria-controls="cmd-suggest">
+        <ul class="cmd-suggest" id="cmd-suggest" role="listbox" hidden></ul>
+      </div>
+      <button type="submit" id="prompt-send">Add to scene</button>
+    </form>
+    <button type="button" id="cheat-btn" class="help-btn" aria-expanded="false" aria-controls="cheatsheet">? Commands</button>
+    <section class="cheat" id="cheatsheet" hidden aria-label="Command cheatsheet"></section>
+    <section class="blueprint" id="blueprint" hidden role="dialog" aria-label="Proposed blueprint"></section>
+  </footer>
+
+  <div class="modal-backdrop" id="import-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="import-title">
+      <header class="modal-head">
+        <h2 id="import-title">Import map</h2>
+        <button type="button" class="close" id="import-close" aria-label="Close">×</button>
+      </header>
+      <div class="drop" id="import-drop" tabindex="0">
+        <p><strong>Drag a battle map here</strong> or <label for="import-file" class="pick">choose a file</label></p>
+        <small>.png, .jpg or .webp, up to 25 MB</small>
+        <input type="file" id="import-file" accept="image/png,image/jpeg,image/webp" hidden>
+        <img id="import-preview" alt="Map preview" hidden>
+      </div>
+      <div class="calib">
+        <label>Columns <input type="number" id="imp-cols" min="4" max="128" step="1"></label>
+        <label>Rows <input type="number" id="imp-rows" min="4" max="96" step="1"></label>
+        <label class="wide">Grid overlay <input type="range" id="imp-opacity" min="0" max="100" step="5"> <output id="imp-opacity-out">35%</output></label>
+      </div>
+      <p class="note" id="import-note"></p>
+      <footer class="modal-foot">
+        <button type="button" class="btn danger" id="import-remove" hidden>Remove map</button>
+        <span class="grow"></span>
+        <button type="button" class="btn neutral" id="import-cancel">Cancel</button>
+        <button type="button" class="btn primary" id="import-save">Save map</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="newmap-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="nm-title">
+      <header class="modal-head">
+        <h2 id="nm-title">New Map</h2>
+        <button type="button" class="close" id="nm-close" aria-label="Close">×</button>
+      </header>
+      <label class="field">Name <input type="text" id="nm-name" maxlength="60" placeholder="Ashfall Hold" autocomplete="off"></label>
+      <fieldset class="seg">
+        <legend>Scope</legend>
+        <label><input type="radio" name="nm-scope" value="world"><span>🌍 World</span></label>
+        <label><input type="radio" name="nm-scope" value="region" checked><span>🌲 Region</span></label>
+        <label><input type="radio" name="nm-scope" value="town"><span>🏘 Town</span></label>
+        <label><input type="radio" name="nm-scope" value="interior"><span>🏠 Interior</span></label>
+        <label><input type="radio" name="nm-scope" value="dungeon"><span>🕳 Dungeon</span></label>
+      </fieldset>
+      <div class="calib">
+        <label>Columns <input type="number" id="nm-cols" min="8" max="128" value="32"></label>
+        <label>Rows <input type="number" id="nm-rows" min="8" max="96" value="24"></label>
+      </div>
+      <fieldset class="seg">
+        <legend>Background</legend>
+        <label><input type="radio" name="nm-bg" value="fill" checked><span>Terrain fill</span></label>
+        <label><input type="radio" name="nm-bg" value="image"><span>Map image</span></label>
+      </fieldset>
+      <div id="nm-fill-wrap" class="calib">
+        <label class="wide">Fill
+          <select id="nm-fill">
+            <option value="ocean">Ocean</option><option value="forest" selected>Forest</option>
+            <option value="dirt">Dirt</option><option value="stone">Stone</option>
+          </select>
+        </label>
+      </div>
+      <div id="nm-image-wrap" class="drop" hidden>
+        <div id="nm-drop" tabindex="0">
+          <p><strong>Drop a map image here</strong> or <label for="nm-file" class="pick">choose a file</label></p>
+          <small id="nm-file-name">No image chosen</small>
+          <input type="file" id="nm-file" accept="image/png,image/jpeg,image/webp" hidden>
+        </div>
+      </div>
+      <fieldset class="seg">
+        <legend>Hierarchy</legend>
+        <label><input type="radio" name="nm-parent" value="child" checked><span id="nm-child-label">Child of this scene</span></label>
+        <label><input type="radio" name="nm-parent" value="root"><span>New root world</span></label>
+      </fieldset>
+      <label class="check" id="nm-pin-wrap"><input type="checkbox" id="nm-pin" checked> Drop a pin for it on this map</label>
+      <p class="note" id="nm-note"></p>
+      <footer class="modal-foot">
+        <span class="grow"></span>
+        <button type="button" class="btn neutral" id="nm-cancel">Cancel</button>
+        <button type="button" class="btn primary" id="nm-create">Create map</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+[console_scripts]
+gm-workstation = app:main

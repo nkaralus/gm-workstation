@@ -1,0 +1,30 @@
+# Virtual environment
+.venv/
+env/
+venv/
+
+# AI Model weights (Exceeds GitHub 100MB limit)
+models/
+*.gguf
+*.bin
+
+# Python runtime & caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local SQLite databases & WAL logs
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3
+
+# Uploaded test maps & assets
+assets/maps/*.png
+assets/maps/*.jpg
+assets/maps/*.webp
+!assets/maps/.gitkeep
+
+# Environment variables & secrets
+.env
+*.token

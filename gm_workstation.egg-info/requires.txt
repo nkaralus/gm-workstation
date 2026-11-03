@@ -1,0 +1,9 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+
+[images]
+google-genai>=0.8
+
+[llm]
+llama-cpp-python>=0.2.90
+huggingface-hub>=0.23
